@@ -1,0 +1,193 @@
+options:
+    prefix: &8[&cAuth&8] &r
+    c1: &c
+    c2: &7
+    spawn-msg: &aAuth Spawn location set!
+    no-perm: &cAccess Denied!
+    session-time: 5 hours
+    auth-timeout: 60
+    bossbar-title: &bPlease login or register to play!
+
+on load:
+    wait 2 second
+    broadcast "{@prefix} {@c1}Auth Beta 1.0"
+    broadcast "&7"
+    broadcast "This is beta version so if you find any bug report me on discord"
+    broadcast "{@c1}Discord{@c2}: @honey_me_0"
+
+variables:
+    {auth::spawn} = false
+
+on tab complete of "/auth":
+    set tab completions for position 1 to "help", "setspawn", "delete" and "setpass"
+    if tab arg-1 is "delete" or "setpass":
+        set tab completions for position 2 to all players
+
+on tab complete of "/register" or "/reg":
+    set tab completions for position 1 to "<Password>"
+    set tab completions for position 2 to "<Confirm-Password>"
+
+on tab complete of "/login" or "/l" or "/log":
+    set tab completions for position 1 to "<Password>"
+
+on tab complete of "/changepassword" or "/changepass" or "/cp":
+    set tab completions for position 1 to "<Current-Password>"
+    set tab completions for position 2 to "<New-Password>"
+
+command /auth [<text>] [<offlineplayer>] [<text>]:
+    permission: auth.admin
+    permission message: {@prefix} {@no-perm}
+    trigger:
+        if arg-1 is "setspawn":
+            set {auth::spawn} to player's location
+            send "{@prefix} {@spawn-msg}"
+        else if arg-1 is "delete" or "unregister":
+            if arg-2 is set:
+                delete {auth::password::%arg-2's uuid%}
+                delete {auth::registered::%arg-2's uuid%}
+                delete {auth::last-ip::%arg-2's uuid%}
+                delete {auth::session-expiry::%arg-2's uuid%}
+                send "{@prefix} &fAccount for {@c1}%arg-2% &fdeleted."
+            else:
+                send "{@prefix} {@c1}Usage: /auth delete <player>"
+        else if arg-1 is "setpass":
+            if arg-2 is set:
+                if arg-3 is set:
+                    set {auth::password::%arg-2's uuid%} to arg-3
+                    send "{@prefix} &fPassword for {@c1}%arg-2% &fset to {@c1}%arg-3%&f."
+                else:
+                    send "{@prefix} {@c1}Usage: /auth setpass <player> <pass>"
+        else if arg-1 is "help":
+            send "{@c1}&l--- AUTH ADMIN HELP ---"
+            send "{@c2}/auth setspawn &8- &fSet spawn"
+            send "{@c2}/auth delete <player> &8- &fRemove user"
+            send "{@c2}/auth setpass <player> <pass> &8- &fChange pass"
+        else:
+            send "{@prefix} {@c2}Unknown command. Use {@c1}/auth help"
+
+command /changepassword [<text>] [<text>]:
+    aliases: /cp, /changepass
+    trigger:
+        if {auth::logged-in::%player's uuid%} is false:
+            send "{@prefix} {@c1}You must be logged in to do this!"
+            stop
+        if arg-1 is not {auth::password::%player's uuid%}:
+            send "{@prefix} {@c1}Usage: /changepassword <old-password> <new-password>"
+            stop
+        if arg-2 is not set:
+            send "{@prefix} {@c1}Usage: /changepassword <old-password> <new-password>"
+            stop
+        set {auth::password::%player's uuid%} to arg-2
+        send "{@prefix} &aPassword updated successfully!"
+
+on join:
+    set join message to ""
+    set {auth::logged-in::%player's uuid%} to false
+    
+    if {auth::spawn} is set:
+        teleport player to {auth::spawn}
+    
+    hide player from all players
+    
+    if {auth::registered::%player's uuid%} is set:
+        if {auth::last-ip::%player's uuid%} is IP of player:
+            if now is less than {auth::session-expiry::%player's uuid%}:
+                loginPlayer(player)
+                stop
+
+    wait 5 ticks
+    set {_timer} to {@auth-timeout}
+    set {_msgTimer} to 0
+    set {_id} to "auth.%player's uuid%"
+    
+    if {auth::registered::%player's uuid%} is not set:
+        send title "{@c1}Please Register" with subtitle "{@c1}Command {@c2}/register <pass> <pass>" to player for 5 seconds
+    else:
+        send title "{@c1}Please Login" with subtitle "{@c1}Command {@c2}/login <password>" to player for 5 seconds
+    set {_bar} to boss bar with id {_id} with title "{@bossbar-title} &e(%{_timer}%s)" with color red with progress 100
+    add player to bar players of {_bar}
+
+    while {auth::logged-in::%player's uuid%} is false:
+        if {_timer} <= 0:
+            remove player from bar players of {_bar}
+            delete boss bar with id {_id}
+            kick player due to "{@prefix} &cAuthentication timed out!"
+            stop
+        set bar title of {_bar} to "{@bossbar-title} &e(%{_timer}%s)"
+        set bar progress of {_bar} to ({_timer} / {@auth-timeout}) * 100
+        send action bar "{@c2}Login Time left: {@c1}%{_timer}%s" to player
+        
+        if {_msgTimer} <= 0:
+            send "{@c1}Please Login" to player
+            send "&7" to player
+            if {auth::registered::%player's uuid%} is not set:
+                send "{@c1}Command{@c2}: /register <pass> <pass>" to player
+            else:
+                send "{@c1}Command{@c2}: /login <password>" to player
+            send "&7" to player
+            set {_msgTimer} to 10
+            
+        wait 1 second
+        remove 1 from {_timer}
+        remove 1 from {_msgTimer}
+        
+        if player is not online:
+            delete boss bar with id {_id}
+            stop
+
+on quit:
+    set quit message to ""
+    set {auth::last-ip::%player's uuid%} to IP of player
+    set {auth::session-expiry::%player's uuid%} to now
+    add {@session-time} to {auth::session-expiry::%player's uuid%}
+    set {auth::logged-in::%player's uuid%} to false
+    delete boss bar with id "auth.%player's uuid%"
+
+function loginPlayer(p: player):
+    set {auth::logged-in::%{_p}'s uuid%} to true
+    delete boss bar with id "auth.%{_p}'s uuid%"
+    reveal {_p} to all players
+    send "{@prefix} &aSuccessfully logged in." to {_p}
+    broadcast "&8[&a+&8] &7%{_p}%"
+
+command /register [<text>] [<text>]:
+    aliases: /reg
+    trigger:
+        if {auth::registered::%player's uuid%} is set:
+            send "{@prefix} {@c1}Already registered!"
+            stop
+        if arg-2 is not set:
+            send "{@prefix} {@c1}Usage: /register <pass> <pass>"
+            stop
+        if arg-1 is not arg-2:
+            send "{@prefix} {@c1}Passwords do not match!"
+            stop
+        set {auth::password::%player's uuid%} to arg-1
+        set {auth::registered::%player's uuid%} to true
+        loginPlayer(player)
+
+command /login [<text>]:
+    aliases: /l, /log
+    trigger:
+        if {auth::logged-in::%player's uuid%} is true:
+            send "{@prefix} {@c1}Already logged in!"
+            stop
+        if arg-1 is {auth::password::%player's uuid%}:
+            loginPlayer(player)
+        else:
+            send "{@prefix} {@c1}Incorrect password!"
+
+on player move:
+    {auth::logged-in::%player's uuid%} is false
+    cancel event
+on chat:
+    {auth::logged-in::%player's uuid%} is false
+    cancel event
+on command:
+    {auth::logged-in::%player's uuid%} is false
+    command is not "login" or "l" or "log" or "register" or "reg"
+    cancel event
+    stop
+on inventory click:
+    {auth::logged-in::%player's uuid%} is false
+    cancel event
