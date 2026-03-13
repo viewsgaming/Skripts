@@ -1,0 +1,165 @@
+options:
+    prefix: &bChatcolor &7›
+    gui: &8» Chat Customizer
+    grad_gui: &8» Gradient Selection
+    border: gray stained glass pane
+
+function openMainGUI(p: player):
+    open virtual chest inventory with size 6 named "{@gui}" to {_p}
+    loop 54 times:
+        set {_s} to loop-number - 1
+        if {_s} is 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 17, 18, 26, 27, 35, 36, 44, 45, 46, 47, 48, 49, 50, 51, 52 or 53:
+            set slot {_s} of {_p}'s current inventory to {@border} named " "
+
+    setSlotColor({_p}, 10, red stained glass, "<dark_red>", "&4Dark Red", "chatcolor.color.darkred")
+    setSlotColor({_p}, 11, red stained glass, "<red>", "&cRed", "chatcolor.color.red")
+    setSlotColor({_p}, 12, orange stained glass, "<gold>", "&6Gold", "chatcolor.color.gold")
+    setSlotColor({_p}, 13, yellow stained glass, "<yellow>", "&eYellow", "chatcolor.color.yellow")
+    setSlotColor({_p}, 14, green stained glass, "<green>", "&2Green", "chatcolor.color.green")
+    setSlotColor({_p}, 15, lime stained glass, "<lime>", "&aLime", "chatcolor.color.lime")
+    setSlotColor({_p}, 16, light blue stained glass, "<aqua>", "&bAqua", "chatcolor.color.aqua")
+    setSlotColor({_p}, 19, cyan stained glass, "<dark_aqua>", "&3Cyan", "chatcolor.color.cyan")
+    setSlotColor({_p}, 20, blue stained glass, "<blue>", "&9Light Blue", "chatcolor.color.blue")
+    setSlotColor({_p}, 21, blue stained glass, "<dark_blue>", "&1Blue", "chatcolor.color.darkblue")
+    setSlotColor({_p}, 22, purple stained glass, "<dark_purple>", "&5Purple", "chatcolor.color.purple")
+    setSlotColor({_p}, 23, pink stained glass, "<light_purple>", "&dPink", "chatcolor.color.pink")
+    setSlotColor({_p}, 24, black stained glass, "<black>", "&0Black", "chatcolor.color.black")
+    setSlotColor({_p}, 25, gray stained glass, "<dark_gray>", "&8Dark Gray", "chatcolor.color.darkgray")
+    setSlotColor({_p}, 28, light gray stained glass, "<gray>", "&7Gray", "chatcolor.color.gray")
+    setSlotColor({_p}, 29, white stained glass, "<white>", "&fWhite", "chatcolor.color.white")
+
+    set {_c} to {chatcolor::%uuid of {_p}%} ? "<white>"
+    set {_preview} to mini message from "<reset>%{_c}%Your Chat"
+    set slot 31 of {_p}'s current inventory to skull of {_p} named "&bYour Profile" with lore "&7Current: %{_preview}%", "", "&eClick to reset all"
+    
+    if {_p} has permission "chatcolor.gradient.access":
+        set slot 33 of {_p}'s current inventory to nether star named "&b&lGRADIENTS" with lore "&7Click to view 27 custom gradients"
+    else:
+        set slot 33 of {_p}'s current inventory to barrier named "&c&lGRADIENTS" with lore "&cLocked!"
+
+    setFormattingSlot({_p}, 40, "bold", "&l&fBOLD", "chatcolor.format.bold")
+    setFormattingSlot({_p}, 41, "italic", "&o&fITALIC", "chatcolor.format.italic")
+    setFormattingSlot({_p}, 42, "underline", "&n&fUNDERLINE", "chatcolor.format.underline")
+    setFormattingSlot({_p}, 43, "strike", "&m&fSTRIKE", "chatcolor.format.strike")
+    set slot 49 of {_p}'s current inventory to barrier named "&cClose Menu"
+
+function setSlotColor(p: player, s: number, i: item, tag: text, name: text, perm: text):
+    if {_p} has permission {_perm}:
+        set slot {_s} of {_p}'s current inventory to {_i} named "%{_name}%" with lore "&7Click to select"
+    else:
+        set slot {_s} of {_p}'s current inventory to barrier named "%{_name}% &c(Locked)"
+
+function setFormattingSlot(p: player, s: number, type: text, name: text, perm: text):
+    set {_status} to "&aEnabled" if {chatcolor.%{_type}%::%uuid of {_p}%} is true else "&cDisabled"
+    if {_p} has permission {_perm}:
+        set slot {_s} of {_p}'s current inventory to paper named "%{_name}%" with lore "&7Status: %{_status}%", "", "&eClick to toggle"
+    else:
+        set slot {_s} of {_p}'s current inventory to barrier named "%{_name}% &c(Locked)"
+
+function openGradientGUI(p: player):
+    open virtual chest inventory with size 3 named "{@grad_gui}" to {_p}
+    set {_grads::*} to "<gradient:#ff0000:#ffff00>", "<gradient:#00ff00:#0000ff>", "<gradient:#8e2de2:#4a00e0>", "<gradient:#f12711:#f5af19>", "<gradient:#6a11cb:#2575fc>", "<gradient:#3c1053:#ad5389>", "<gradient:#11998e:#38ef7d>", "<gradient:#ff9a9e:#fecfef>", "<gradient:#2193b0:#6dd5ed>", "<gradient:#ee9ca7:#ffdde1>", "<gradient:#bdc3c7:#2c3e50>", "<gradient:#de6262:#ffb88c>", "<gradient:#06beb6:#48b1bf>", "<gradient:#eb3349:#f45c43>", "<gradient:#dd1818:#333333>", "<gradient:#1d2b64:#f8cdda>", "<gradient:#ff5f6d:#ffc371>", "<gradient:#11998e:#38ef7d>", "<gradient:#108dc7:#ef8e38>", "<gradient:#fc5c7d:#6a82fb>", "<gradient:#d3959b:#bfe9ff>", "<gradient:#00b09b:#96c93d>", "<gradient:#cac531:#f3f9a7>", "<gradient:#800080:#ffc0cb>", "<gradient:#000000:#434343>", "<gradient:#f4c4f3:#fc67fa>", "<gradient:#f857a6:#ff5858>"
+    
+    loop 27 times:
+        set {_s} to loop-number - 1
+        set {_tag} to {_grads::%loop-number%}
+        set {_item} to name tag named "&bGradient ##%loop-number%"
+        set {_preview} to mini message from "<reset>%{_tag}%Example Text"
+        set lore of {_item} to "&7Click to apply", "", "&fPreview: %{_preview}%"
+        set slot {_s} of {_p}'s current inventory to {_item}
+
+# --- TAB ---
+
+on tab complete of "/cc":
+    set tab completions for position 1 to "help", "hex", "reset" and "admin"
+    if tab arg 1 is "admin":
+        set tab completions for position 2 to "reset" and "set"
+        set tab completions for position 3 to all players
+
+# --- COMMANDS ---
+
+command /chatcolor [<text>] [<text>] [<text>] [<text>]:
+    aliases: /cc
+    permission: chatcolor.use
+    trigger:
+        if arg-1 is "admin":
+            if player has permission "chatcolor.admin":
+                if arg-2 is "set":
+                    if arg-3 and arg-4 is set:
+                        set {_u} to arg-3 parsed as offline player
+                        set {chatcolor::%uuid of {_u}%} to arg-4
+                        set {_msg} to mini message from arg-4
+                        send "{@prefix} &fSet &e%arg-3%&f's color to %{_msg}%"
+            stop
+
+        if arg-1 is not set:
+            openMainGUI(player)
+            stop
+
+        if arg-1 is "reset":
+            delete {chatcolor::%uuid of player%}
+            delete {chatcolor.bold::%uuid of player%}
+            delete {chatcolor.italic::%uuid of player%}
+            delete {chatcolor.underline::%uuid of player%}
+            delete {chatcolor.strike::%uuid of player%}
+            send "{@prefix} &fSettings cleared."
+            stop
+
+# --- CLICK ---
+
+on inventory click:
+    if name of event-inventory is "{@gui}":
+        cancel event
+        set {_slot} to index of event-slot
+        
+        set {_tags::10} to "<dark_red>|chatcolor.color.darkred"
+        set {_tags::11} to "<red>|chatcolor.color.red"
+        set {_tags::12} to "<gold>|chatcolor.color.gold"
+        set {_tags::13} to "<yellow>|chatcolor.color.yellow"
+        set {_tags::14} to "<green>|chatcolor.color.green"
+        set {_tags::15} to "<lime>|chatcolor.color.lime"
+        set {_tags::16} to "<aqua>|chatcolor.color.aqua"
+        set {_tags::19} to "<dark_aqua>|chatcolor.color.cyan"
+        set {_tags::20} to "<blue>|chatcolor.color.blue"
+        set {_tags::21} to "<dark_blue>|chatcolor.color.darkblue"
+        set {_tags::22} to "<dark_purple>|chatcolor.color.purple"
+        set {_tags::23} to "<light_purple>|chatcolor.color.pink"
+        set {_tags::24} to "<black>|chatcolor.color.black"
+        set {_tags::25} to "<dark_gray>|chatcolor.color.darkgray"
+        set {_tags::28} to "<gray>|chatcolor.color.gray"
+        set {_tags::29} to "<white>|chatcolor.color.white"
+
+        if {_tags::%{_slot}%} is set:
+            set {_data::*} to {_tags::%{_slot}%} split at "|"
+            if player has permission {_data::2}:
+                set {chatcolor::%uuid of player%} to {_data::1}
+                openMainGUI(player)
+        
+        if {_slot} is 33:
+            openGradientGUI(player) if player has permission "chatcolor.gradient.access"
+
+        if {_slot} is 40:
+            if player has permission "chatcolor.format.bold":
+                set {chatcolor.bold::%uuid of player%} to (true if {chatcolor.bold::%uuid of player%} is not true else false)
+                openMainGUI(player)
+        # Add similar logic for 41, 42, 43 as needed
+        
+        close player's inventory if {_slot} is 49
+
+    if name of event-inventory is "{@grad_gui}":
+        cancel event
+        if event-item is name tag:
+            set {_slot} to index of event-slot
+            set {_grads::*} to "<gradient:#ff0000:#ffff00>", "<gradient:#00ff00:#0000ff>", "<gradient:#8e2de2:#4a00e0>", "<gradient:#f12711:#f5af19>", "<gradient:#6a11cb:#2575fc>", "<gradient:#3c1053:#ad5389>", "<gradient:#11998e:#38ef7d>", "<gradient:#ff9a9e:#fecfef>", "<gradient:#2193b0:#6dd5ed>", "<gradient:#ee9ca7:#ffdde1>", "<gradient:#bdc3c7:#2c3e50>", "<gradient:#de6262:#ffb88c>", "<gradient:#06beb6:#48b1bf>", "<gradient:#eb3349:#f45c43>", "<gradient:#dd1818:#333333>", "<gradient:#1d2b64:#f8cdda>", "<gradient:#ff5f6d:#ffc371>", "<gradient:#11998e:#38ef7d>", "<gradient:#108dc7:#ef8e38>", "<gradient:#fc5c7d:#6a82fb>", "<gradient:#d3959b:#bfe9ff>", "<gradient:#00b09b:#96c93d>", "<gradient:#cac531:#f3f9a7>", "<gradient:#800080:#ffc0cb>", "<gradient:#000000:#434343>", "<gradient:#f4c4f3:#fc67fa>", "<gradient:#f857a6:#ff5858>"
+            set {chatcolor::%uuid of player%} to {_grads::%({_slot} + 1)%}
+            openMainGUI(player)
+
+# --- PLACEHOLDERAPI ---
+
+placeholderapi placeholder with prefix "chatcolor":
+    if identifier is "color":
+        set {_res} to {chatcolor::%uuid of player%} ? "<white>"
+        if {chatcolor.bold::%uuid of player%} is true:
+            set {_res} to "%{_res}%<bold>"
+        # Add other formats here
+        set result to {_res}

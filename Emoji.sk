@@ -1,0 +1,208 @@
+options:
+    prefix: <##FDC960><bold>Emojis</bold> <##888888>»<reset>
+    emoji-perm: server.chat.emoji
+    no-perm: <##FF5555>You don't have <##FF8080>permission <reset>to use emojis.
+    line: <##555555>&m                                                &r
+
+function parseEmoji(t: text) :: text:
+    set {_m} to {_t}
+    # Page 1
+    replace all ":1:" in {_m} with "✔"
+    replace all ":2:" in {_m} with "✘"
+    replace all ":3:" in {_m} with "<##FF0000>❤<reset>"
+    replace all ":4:" in {_m} with "<##FFFF00>★<reset>"
+    replace all ":5:" in {_m} with "<##777777>☠<reset>"
+    replace all ":6:" in {_m} with "<##FFCC00>☀<reset>"
+    replace all ":7:" in {_m} with "<##00FFFF>☂<reset>"
+    replace all ":8:" in {_m} with "<##A97A50>☕<reset>"
+    replace all ":9:" in {_m} with "<##FFD700>⚡<reset>"
+    replace all ":10:" in {_m} with "<##FF4500>🔥<reset>"
+    # Page 2
+    replace all ":11:" in {_m} with "<##00FF00>➤<reset>"
+    replace all ":12:" in {_m} with "<##00FF00>➜<reset>"
+    replace all ":13:" in {_m} with "<##00FF00>➥<reset>"
+    replace all ":14:" in {_m} with "<##00FF00>➟<reset>"
+    replace all ":15:" in {_m} with "<##00FF00>➠<reset>"
+    replace all ":16:" in {_m} with "<##00BFFF>◆<reset>"
+    replace all ":17:" in {_m} with "<##00BFFF>◇<reset>"
+    replace all ":18:" in {_m} with "<##333333>■<reset>"
+    replace all ":19:" in {_m} with "<##AAAAAA>□<reset>"
+    replace all ":20:" in {_m} with "<##FFD700>✦<reset>"
+    # Page 3
+    replace all ":21:" in {_m} with "<##FFD700>✧<reset>"
+    replace all ":22:" in {_m} with "<##FFD700>✪<reset>"
+    replace all ":23:" in {_m} with "<##FFD700>✰<reset>"
+    replace all ":24:" in {_m} with "<##FF69B4>✿<reset>"
+    replace all ":25:" in {_m} with "<##FF69B4>❀<reset>"
+    replace all ":26:" in {_m} with "<##00CED1>❖<reset>"
+    replace all ":27:" in {_m} with "<##888888>❯<reset>"
+    replace all ":28:" in {_m} with "<##888888>❱<reset>"
+    replace all ":29:" in {_m} with "<##888888>❰<reset>"
+    replace all ":30:" in {_m} with "<##888888>❱<reset>"
+    # Page 4
+    replace all ":31:" in {_m} with "<##00FF00>✓<reset>"
+    replace all ":32:" in {_m} with "<##FF0000>✗<reset>"
+    replace all ":33:" in {_m} with "<##999999>⚔<reset>"
+    replace all ":34:" in {_m} with "<##999999>⚒<reset>"
+    replace all ":35:" in {_m} with "<##999999>⚙<reset>"
+    replace all ":36:" in {_m} with "<##00FF00>☣<reset>"
+    replace all ":37:" in {_m} with "<##FF0000>☢<reset>"
+    replace all ":38:" in {_m} with "<##FFFFFF>☯<reset>"
+    replace all ":39:" in {_m} with "<##999999>✂<reset>"
+    replace all ":40:" in {_m} with "<##4169E1>✈<reset>"
+    # Page 5
+    replace all ":41:" in {_m} with "<##4169E1>✉<reset>"
+    replace all ":42:" in {_m} with "<##FFD700>✌<reset>"
+    replace all ":43:" in {_m} with "<##999999>✍<reset>"
+    replace all ":44:" in {_m} with "<##999999>✎<reset>"
+    replace all ":45:" in {_m} with "<##FF0000>❣<reset>"
+    replace all ":46:" in {_m} with "<##FFFFFF>✝<reset>"
+    replace all ":47:" in {_m} with "<##FFD700>✡<reset>"
+    replace all ":48:" in {_m} with "<##FFD700>✵<reset>"
+    replace all ":49:" in {_m} with "<##FFD700>✶<reset>"
+    replace all ":50:" in {_m} with "<##FFD700>✷<reset>"
+    # Page 6
+    replace all ":51:" in {_m} with "<##00BFFF>❄<reset>"
+    replace all ":52:" in {_m} with "<##FFD700>✹<reset>"
+    replace all ":53:" in {_m} with "<##00FF00>❁<reset>"
+    replace all ":54:" in {_m} with "<##00FF00>❃<reset>"
+    replace all ":55:" in {_m} with "<##FFD700>✺<reset>"
+    replace all ":56:" in {_m} with "<##FFD700>✸<reset>"
+    replace all ":57:" in {_m} with "<##FFD700>✻<reset>"
+    replace all ":58:" in {_m} with "<##00BFFF>❈<reset>"
+    replace all ":59:" in {_m} with "<##00FF00>☘<reset>"
+    replace all ":60:" in {_m} with "<##FF0000>❤<reset>"
+    # Page 7-10 (New Emojis)
+    replace all ":61:" in {_m} with "<##00FF00>☘<reset>"
+    replace all ":62:" in {_m} with "<##FFD700>❂<reset>"
+    replace all ":63:" in {_m} with "<##FF4500>☄<reset>"
+    replace all ":64:" in {_m} with "<##00BFFF>☾<reset>"
+    replace all ":65:" in {_m} with "<##FFFF00>☽<reset>"
+    replace all ":66:" in {_m} with "<##FFD700>♔<reset>"
+    replace all ":67:" in {_m} with "<##FFD700>♕<reset>"
+    replace all ":68:" in {_m} with "<##FFD700>♖<reset>"
+    replace all ":69:" in {_m} with "<##FFD700>♗<reset>"
+    replace all ":70:" in {_m} with "<##FFD700>♘<reset>"
+    replace all ":71:" in {_m} with "<##FFD700>♙<reset>"
+    replace all ":72:" in {_m} with "<##FF0000>♠<reset>"
+    replace all ":73:" in {_m} with "<##FF0000>♣<reset>"
+    replace all ":74:" in {_m} with "<##FF0000>♥<reset>"
+    replace all ":75:" in {_m} with "<##FF0000>♦<reset>"
+    replace all ":76:" in {_m} with "<##00FF00>♩<reset>"
+    replace all ":77:" in {_m} with "<##00FF00>♪<reset>"
+    replace all ":78:" in {_m} with "<##00FF00>♫<reset>"
+    replace all ":79:" in {_m} with "<##00FF00>♬<reset>"
+    replace all ":80:" in {_m} with "<##00FF00>♭<reset>"
+    replace all ":81:" in {_m} with "<##00FF00>♮<reset>"
+    replace all ":82:" in {_m} with "<##00FF00>♯<reset>"
+    replace all ":83:" in {_m} with "<##888888>♲<reset>"
+    replace all ":84:" in {_m} with "<##FFD700>♿<reset>"
+    replace all ":85:" in {_m} with "<##4169E1>⚓<reset>"
+    replace all ":86:" in {_m} with "<##FF0000>⚠<reset>"
+    replace all ":87:" in {_m} with "<##FFFFFF>⚡<reset>"
+    replace all ":88:" in {_m} with "<##AAAAAA>⚪<reset>"
+    replace all ":89:" in {_m} with "<##333333>⚫<reset>"
+    replace all ":90:" in {_m} with "<##888888>⚰<reset>"
+    replace all ":91:" in {_m} with "<##888888>⚱<reset>"
+    replace all ":92:" in {_m} with "<##FF00FF>⚽<reset>"
+    replace all ":93:" in {_m} with "<##FFFFFF>⚾<reset>"
+    replace all ":94:" in {_m} with "<##FF8C00>🏀<reset>"
+    replace all ":95:" in {_m} with "<##00FF00>🎾<reset>"
+    replace all ":96:" in {_m} with "<##8B4513>🏈<reset>"
+    replace all ":97:" in {_m} with "<##FFFFFF>🏐<reset>"
+    replace all ":98:" in {_m} with "<##8B4513>🏏<reset>"
+    replace all ":99:" in {_m} with "<##00FF00>⛳<reset>"
+    replace all ":100:" in {_m} with "<##FFD700>🏆<reset>"
+    return {_m}
+
+on chat:
+    if player has permission "{@emoji-perm}":
+        set chat-message to parseEmoji(chat-message)
+
+command /emojis [<integer>]:
+    trigger:
+        if player does not have permission "{@emoji-perm}":
+            send mini message from "{@prefix} {@no-perm}"
+            stop
+        
+        set {_p} to arg-1 ? 1
+        if {_p} > 10:
+            set {_p} to 10
+
+        send "{@line}"
+        send "      <##EED780><bold>✨ EMOJI DIRECTORY ✨&r <gray>(Page %{_p}%/10)"
+        send "      <##AAAAAA>Click any emoji to suggest in chat!"
+        send ""
+
+        # Page-wise display
+        if {_p} is 1:
+            displayEmoji(player, "1", "✔", "2", "✘")
+            displayEmoji(player, "3", "❤", "4", "★")
+            displayEmoji(player, "5", "☠", "6", "☀")
+            displayEmoji(player, "7", "☂", "8", "☕")
+            displayEmoji(player, "9", "⚡", "10", "🔥")
+        else if {_p} is 2:
+            displayEmoji(player, "11", "➤", "12", "➜")
+            displayEmoji(player, "13", "➥", "14", "➟")
+            displayEmoji(player, "15", "➠", "16", "◆")
+            displayEmoji(player, "17", "◇", "18", "■")
+            displayEmoji(player, "19", "□", "20", "✦")
+        else if {_p} is 3:
+            displayEmoji(player, "21", "✧", "22", "✪")
+            displayEmoji(player, "23", "✰", "24", "✿")
+            displayEmoji(player, "25", "❀", "26", "❖")
+            displayEmoji(player, "27", "❯", "28", "❱")
+            displayEmoji(player, "29", "❰", "30", "❱")
+        else if {_p} is 4:
+            displayEmoji(player, "31", "✓", "32", "✗")
+            displayEmoji(player, "33", "⚔", "34", "⚒")
+            displayEmoji(player, "35", "⚙", "36", "☣")
+            displayEmoji(player, "37", "☢", "38", "☯")
+            displayEmoji(player, "39", "✂", "40", "✈")
+        else if {_p} is 5:
+            displayEmoji(player, "41", "✉", "42", "✌")
+            displayEmoji(player, "43", "✍", "44", "✎")
+            displayEmoji(player, "45", "❣", "46", "✝")
+            displayEmoji(player, "47", "✡", "48", "✵")
+            displayEmoji(player, "49", "✶", "50", "✷")
+        else if {_p} is 6:
+            displayEmoji(player, "51", "❄", "52", "✹")
+            displayEmoji(player, "53", "❁", "54", "❃")
+            displayEmoji(player, "55", "✺", "56", "✸")
+            displayEmoji(player, "57", "✻", "58", "❈")
+            displayEmoji(player, "59", "☘", "60", "❤")
+        else if {_p} is 7:
+            displayEmoji(player, "61", "☘", "62", "❂")
+            displayEmoji(player, "63", "☄", "64", "☾")
+            displayEmoji(player, "65", "☽", "66", "♔")
+            displayEmoji(player, "67", "♕", "68", "♖")
+            displayEmoji(player, "69", "♗", "70", "♘")
+        else if {_p} is 8:
+            displayEmoji(player, "71", "♙", "72", "♠")
+            displayEmoji(player, "73", "♣", "74", "♥")
+            displayEmoji(player, "75", "♦", "76", "♩")
+            displayEmoji(player, "77", "♪", "78", "♫")
+            displayEmoji(player, "79", "♬", "80", "♭")
+        else if {_p} is 9:
+            displayEmoji(player, "81", "♮", "82", "♯")
+            displayEmoji(player, "83", "♲", "84", "♿")
+            displayEmoji(player, "85", "⚓", "86", "⚠")
+            displayEmoji(player, "87", "⚡", "88", "⚪")
+            displayEmoji(player, "89", "⚫", "90", "⚰")
+        else if {_p} is 10:
+            displayEmoji(player, "91", "⚱", "92", "⚽")
+            displayEmoji(player, "93", "⚾", "94", "🏀")
+            displayEmoji(player, "95", "🎾", "96", "🏈")
+            displayEmoji(player, "97", "🏐", "98", "🏏")
+            displayEmoji(player, "99", "⛳", "100", "🏆")
+
+        send ""
+        set {_prev} to "<click:run_command:'/emojis %{_p}-1%'><##FFD700>【 « PREV 】</click>" if {_p} > 1 else "<##444444>【 « PREV 】"
+        set {_next} to "<click:run_command:'/emojis %{_p}+1%'><##00FF00>【 NEXT » 】</click>" if {_p} < 10 else "<##444444>【 NEXT » 】"
+        send mini message from "           %{_prev}%  <##777777>|  %{_next}%"
+        send "{@line}"
+
+function displayEmoji(p: player, c1: text, e1: text, c2: text, e2: text):
+    set {_msg} to "<gray>  • <click:suggest_command:':%{_c1}%:'><hover:show_text:'<##EED780>Click to use :%{_c1}%:'><white>:%{_c1}%: <reset>%{_e1}%</hover></click>"
+    set {_msg} to "%{_msg}%      <gray>• <click:suggest_command:':%{_c2}%:'><hover:show_text:'<##EED780>Click to use :%{_c2}%:'><white>:%{_c2}%: <reset>%{_e2}%</hover></click>"
+    send mini message from {_msg} to {_p}

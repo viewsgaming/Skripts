@@ -1,0 +1,123 @@
+options:
+    prefix: &7[&eServer&7]
+    playerp: &eSkript Server
+
+on load:
+    if {system::first_load} is not set:
+        set {system::first_load} to true
+        broadcast " "
+        broadcast "&fThanks for using this skript!"
+        broadcast "&7For any help, contact me on &fDiscord: &b@honey_me_0"
+        broadcast " "
+        send "Initial setup complete. Developer: honey_me_0" to console
+
+on join:
+    set join message to "&7[&a+&7] %player's prefix%&f%player%."
+
+on quit:
+    set quit message to "&7[&c-&7] %player's prefix%&f%player%."
+
+command "playerinfo" or "pinfo" or "info":
+    cancel event
+    if player has permission "server.playerinfo.check":
+        if arg-1 is not set:
+            send "&fPlease provide player name" to player
+            send "" to player
+            send "command: &f/playerinfo &7<player>" to player
+            stop
+        
+        set {_target} to arg-1 parsed as player
+        if {_target} is not set:
+            send "&cPlayer not found!" to player
+            stop
+        send "&fPlayer info" to player
+        send "&fUsername: &e%{_target}%" to player
+        send "&fPrefix: %{_target}'s prefix%" to player
+        send "" to player
+        send "&fIP-Address: &c%ip of {_target}%" to player
+        send "&fUUID: &e%uuid of {_target}%" to player
+        send "&fCoordinates: &e%location of {_target}%" to player
+        stop
+    else:
+        send "&fYou don't have &c&npermission&r to do that." to player
+        stop
+
+command "ac" or "adminchat" or "staffchat" or "schat":
+    cancel event
+    if player has permission "server.chat.admin":
+        if arg-1 is not set:
+            send "" to player
+            send "&cUsage: &f/adminchat &7<message>" to player
+            send "&cExample: &f/adminchat &7Hello everyone!" to player
+            send "" to player
+            stop
+            
+        loop all players:
+            if loop-player has permission "server.chat.admin":
+                send "&8[&4Admin&8] &7%player%&8: &f%arg-1%" to loop-player
+    else:
+        send "&fYou don't have &c&npermission&r to do that." to player
+        stop
+
+options:
+    prefix: &6&lSPAWN &7›
+    permission: spawn.admin
+
+command /setspawn:
+    permission: {@permission}
+    trigger:
+        set {server::spawn} to location of player
+        send "{@prefix} &aSpawn location has been set to your current position!"
+        play sound "block.note_block.pling" with pitch 2 to player
+
+command /delspawn:
+    permission: {@permission}
+    trigger:
+        if {server::spawn} is set:
+            delete {server::spawn}
+            send "{@prefix} &cSpawn location has been deleted."
+            play sound "block.lava.extinguish" to player
+        else:
+            send "{@prefix} &eSpawn is not set."
+            play sound "entity.villager.no" to player
+
+command /setspawntpcooldown [<number>]:
+    permission: {@permission}
+    trigger:
+        if arg-1 is not set:
+            send "{@prefix} &eUsage: /setspawntpcooldown <seconds>"
+            stop
+        set {spawn::cooldown} to arg-1
+        send "{@prefix} &fTeleport cooldown set to &b%arg-1% &fseconds."
+        play sound "ui.button.click" to player
+
+command /spawn:
+    trigger:
+        if {server::spawn} is not set:
+            send "{@prefix} &cSpawn is not set by an admin!"
+            play sound "entity.villager.no" to player
+            stop
+        
+        set {_cd} to {spawn::cooldown} ? 0
+        
+        if {_cd} <= 0:
+            teleport player to {server::spawn}
+            send "{@prefix} &aTeleported to spawn!"
+            play sound "entity.enderman.teleport" to player
+            stop
+            
+        send "{@prefix} &fTeleporting in &e%{_cd}% &fseconds... &cDon't move!"
+        set {_loc} to location of player
+        
+        loop {_cd} * 10 times:
+            wait 2 ticks
+            if distance between {_loc} and player > 0.3:
+                send "{@prefix} &cTeleport cancelled! You moved."
+                play sound "entity.villager.no" to player
+                stop
+        
+        teleport player to {server::spawn}
+        send "{@prefix} &aTeleported to spawn!"
+        play sound "entity.enderman.teleport" to player 
+on tab complete of "setspawntpcooldown":
+    set tab completions for position 1 to "0", "3", "5" and "10"

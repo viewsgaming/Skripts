@@ -1,0 +1,137 @@
+on load:
+    if {logs::msg_load_done} is not set:
+        set {logs::msg_load_done} to true
+        set {_m} to mini message from "<gradient:#4facfe:#00f2fe><bold>MSG SYSTEM</bold></gradient> <gray>› <white>Advanced Messaging Loaded!"
+        broadcast " "
+        send {_m} to all players
+        broadcast " "
+    set {msg.conf::self} to true if {msg.conf::self} is not set
+    set {msg.conf::sound_sent} to "ui.button.click" if {msg.conf::sound_sent} is not set
+    set {msg.conf::sound_recv} to "entity.arrow.hit_player" if {msg.conf::sound_recv} is not set
+
+command /privatemessage [<text>] [<text>]:
+    trigger:
+        set {_p} to mini message from "<gradient:#4facfe:#00f2fe><bold>MSG</bold></gradient> <dark_gray>›<reset> "
+        
+        if arg-1 or arg-2 is not set:
+            send mini message from "%{_p}%<yellow>Usage: /msg <player> <message>"
+            stop
+            
+        set {_t} to arg-1 parsed as player
+        if {_t} is not set:
+            send mini message from "%{_p}%<red>Player not found!"
+            stop
+            
+        if {msg.conf::self} is true:
+            if {_t} is player:
+                if player does not have permission "msg.admin":
+                    send mini message from "%{_p}%<red>You cannot message yourself!"
+                    stop
+
+        if arg-2 is not set:
+            send mini message from "%{_p}%<yellow>Usage: /msg %{_t}% <message>"
+            stop
+
+        set {_waited} to difference between {msg.lastsend::%uuid of player%} and now
+        if player does not have permission "msg.bypass":
+            if {_waited} is less than "%{msg.cooldown.time} ? 2% seconds" parsed as timespan:
+                send mini message from "%{_p}%<red>Please wait before sending another message."
+                stop
+
+        if {msg.toggle::%uuid of {_t}%} is set:
+            if player does not have permission "msg.bypass":
+                send mini message from "%{_p}%<red>%{_t}% has PMs disabled."
+                stop
+        if {msg.ignore::%uuid of {_t}%::%uuid of player%} is set:
+            send mini message from "%{_p}%<red>You are ignored by %{_t}%."
+            stop
+
+        set {_msg} to arg-2
+        set {msg.reply::%uuid of {_t}%} to player
+        set {msg.reply::%uuid of player%} to {_t}
+        set {msg.lastsend::%uuid of player%} to now
+        set {msg.last_time::%uuid of player%} to now
+
+        send mini message from "<gray>[<white>To <aqua>%{_t}%<gray>] <white>%{_msg}%" to player
+        play sound "%{msg.conf::sound_sent}%" with volume 0.5 to player
+        
+        set {_recv} to mini message from "<hover:show_text:'<aqua>Click to reply'><click:suggest_command:'/msg %player% '><gray>[<white>From <aqua>%player%<gray>] <white>%{_msg}%</click></hover>"
+        send {_recv} to {_t}
+        play sound "%{msg.conf::sound_recv}%" with volume 1 to {_t}
+
+        loop all players:
+            if {msg.spy::%uuid of loop-player%} is set:
+                if loop-player is not player or {_t}:
+                    send mini message from "<dark_gray>[Spy] <gray>%player% -> %{_t}%: <italic>%{_msg}%" to loop-player
+
+command /msg [<text>] [<text>]:
+    trigger:
+        if arg-1 or arg-2 is not set:
+            send mini message from "<gradient:#4facfe:#00f2fe><bold>MSG</bold></gradient> <dark_gray>› <yellow>Usage: /msg <player> <message>"
+            stop
+        execute player command "/privatemessage %arg 1% %arg 2%"
+
+command /pm [<text>] [<text>]:
+    trigger:
+        if arg-1 or arg-2 is not set:
+            send mini message from "<gradient:#4facfe:#00f2fe><bold>MSG</bold></gradient> <dark_gray>› <yellow>Usage: /pm <player> <message>"
+            stop
+        execute player command "/privatemessage %arg 1% %arg 2%"
+
+command /tell [<text>] [<text>]:
+    trigger:
+        if arg-1 or arg-2 is not set:
+            send mini message from "<gradient:#4facfe:#00f2fe><bold>MSG</bold></gradient> <dark_gray>› <yellow>Usage: /tell <player> <message>"
+            stop
+        execute player command "/privatemessage %arg 1% %arg 2%"
+command /message [<text>] [<text>]:
+    trigger:
+        if arg-1 or arg-2 is not set:
+            send mini message from "<gradient:#4facfe:#00f2fe><bold>MSG</bold></gradient> <dark_gray>› <yellow>Usage: /message <player> <message>"
+            stop
+        execute player command "/privatemessage %arg 1% %arg 2%"
+command /m [<text>] [<text>]:
+    trigger:
+        if arg-1 or arg-2 is not set:
+            send mini message from "<gradient:#4facfe:#00f2fe><bold>MSG</bold></gradient> <dark_gray>› <yellow>Usage: /m <player> <message>"
+            stop
+        execute player command "/privatemessage %arg 1% %arg 2%"
+
+# --- Admin Settings (Command Based) ---
+command /msgadmin [<text>] [<text>] [<text>]:
+    permission: msg.admin
+    trigger:
+        set {_p} to mini message from "<gradient:#4facfe:#00f2fe><bold>ADMIN</bold></gradient> <dark_gray>›<reset> "
+        
+        if arg-1 is "yourself":
+            if arg-2 is "on":
+                set {msg.conf::self} to true
+                send "%{_p}%Yourself security <green>ENABLED."
+            else:
+                set {msg.conf::self} to false
+                send "%{_p}%Yourself security <red>DISABLED."
+                
+        else if arg-1 is "cooldown":
+            set {msg.cooldown.time} to arg-2 parsed as number
+            send "%{_p}%Cooldown set to <aqua>%arg-2% <white>seconds."
+            
+        else if arg-1 is "sound":
+            if arg-2 is "sent":
+                set {msg.conf::sound_sent} to arg-3
+                send "%{_p}%Sent sound changed to <aqua>%arg-3%"
+            else if arg-2 is "received":
+                set {msg.conf::sound_recv} to arg-3
+                send "%{_p}%Received sound changed to <aqua>%arg-3%"
+        else:
+            send "%{_p}%/msgadmin <yourself/cooldown/sound> <value>"
+
+# --- Tab Completion ---
+on tab complete:
+    if event-string is "/msgadmin":
+        set tab completions for position 1 to "yourself", "cooldown" and "sound"
+        if tab arg 1 is "yourself":
+            set tab completions for position 2 to "on" and "off"
+        if tab arg 1 is "sound":
+            set tab completions for position 2 to "sent" and "received"
+    if event-string is "/msg" or "/pm" or "/tell":
+        set tab completions for position 1 to all players

@@ -1,0 +1,6 @@
+options:
+    line_1: §b§lNIGHT §f§lSAGA§r §8§l|| §r§aPublic §a§l•
+    line_2: §b§l╚══ §fSurvival §8• §aFun §8• §e1.8-1.21.11 §bCracked §b§l══╝
+
+on server list ping:
+    set motd to "{@line_1}%nl%{@line_2}"

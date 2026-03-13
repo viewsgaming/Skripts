@@ -1,0 +1,75 @@
+options:
+    p: <#00fbff><bold>Combat&r <gray>»</gray>
+    time: 15
+    bypass: server.pvp.bypass
+
+# ===============================
+# CORE COMBAT LOGIC
+# ===============================
+on damage:
+    attacker is player
+    victim is player
+    attacker != victim
+    {_p} has permission "{@bypass}":
+        stop
+    tagPlayer(attacker, victim)
+    tagPlayer(victim, attacker)
+
+function tagPlayer(p: player, target: player):
+    if {combat::%{_p}'s uuid%} is not set:
+        send mini message from "{@p} <white>ʏᴏᴜ ᴀƦᴇ ɴᴏᴡ Ɪɴ ᴄᴏᴍʙᴀᴛ ᴡꞮᴛʜ <#ff4d4d>%{_target}%</#ff4d4d>!" to {_p}
+        # Flying/Elytra disable
+        if {_p} is flying:
+            set {_p}'s flying mode to false
+    set {combat::%{_p}'s uuid%} to {@time}
+
+every 1 second:
+    loop all players:
+        {combat::%loop-player's uuid%} is set:
+            remove 1 from {combat::%loop-player's uuid%}
+            
+            # Dynamic Progress Bar Logic
+            set {_sec} to {combat::%loop-player's uuid%}
+            set {_bar} to ""
+            loop {@time} times:
+                if loop-value-2 <= {_sec}:
+                    set {_bar} to "%{_bar}%<#00fbff>|"
+                else:
+                    set {_bar} to "%{_bar}%<gray>|"
+            
+            send action bar mini message from "{@p} %{_bar}% <white>%{_sec}%s" to loop-player
+
+            if {combat::%loop-player's uuid%} <= 0:
+                delete {combat::%loop-player's uuid%}
+                send mini message from "{@p} <#72ee2a>ʏᴏᴜ ᴀʀᴇ ɴᴏᴡ sᴀғᴇ ᴛᴏ ʟᴇᴀᴠᴇ." to loop-player
+on portal:
+    {combat::%player's uuid%} is set:
+        cancel event
+        send mini message from "{@p} <red>ᴘᴏʀᴛᴀʟs ᴀʀᴇ ᴅɪsᴀʙʟᴇᴅ ɪɴ ᴄᴏᴍʙᴀᴛ!"
+
+on command:
+    {combat::%player's uuid%} is set:
+        player has permission "{@bypass}":
+            stop
+            
+        set {_cmd} to complete command
+        if {_cmd} contains "msg" and "m", "message", "reply", "r", "help", "list":
+            stop
+        cancel event
+        send mini message from "{@p} <red>You can't use command during combat."
+
+# Block Ender Pearls (Optional: Combat mein pearl block karna ho toh)
+# on ender pearl throw:
+#    {combat::%player's uuid%} is set:
+        # cancel event
+        # send "{@p} &cPearls are disabled!"
+
+on quit:
+    {combat::%player's uuid%} is set:
+        player does not have permission "{@bypass}"
+        kill player
+        delete {combat::%player's uuid%}
+        broadcast mini message from "{@p} <#ff4d4d>%player% <white>has tried to leave game during combat!"
+
+on death of player:
+    delete {combat::%victim's uuid%}

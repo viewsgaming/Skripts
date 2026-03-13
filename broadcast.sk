@@ -1,0 +1,56 @@
+options:
+    # Colors for the design
+    c1: <##FF8C00> # Orange
+    c2: <##FFD700> # Gold
+    line: <##555555>&m                                                &r
+    ad_cooldown: 60 seconds
+
+command /broadcast [<text>]:
+    aliases: /ad, /shout
+    permission: server.broadcast
+    permission message: &cYou don't have permission to shout!
+    trigger:
+        if arg-1 is not set:
+            send mini message from "{@c1}<bold>Usage:</bold> <gray>/broadcast <message>"
+            stop
+
+        # --- Anti-Magic & Spam Security ---
+        if arg-1 contains "&k" or "§k":
+            send mini message from "{@c1}<bold>Error:</bold> <red>Magic text (&k) is forbidden!"
+            stop
+
+        set {_waited} to difference between {bc.lastused::%uuid of player%} and now
+        if player does not have permission "server.admin":
+            if {_waited} is less than {@ad_cooldown}:
+                set {_rem} to difference between {@ad_cooldown} and {_waited}
+                send mini message from "{@c1}<bold>Slow down!</bold> <gray>Wait %{_rem}% before next broadcast."
+                stop
+
+        # --- Formatting & Sending ---
+        set {bc.lastused::%uuid of player%} to now
+        set {_msg} to colored arg-1
+        
+        broadcast " "
+        broadcast "{@line}"
+        
+        # Professional Header with Gradient
+        set {_header} to mini message from "  <gradient:##FF8C00:##FFD700><bold>📢 PLAYER ANNOUNCEMENT</bold></gradient>"
+        broadcast {_header}
+        
+        # The Message Body
+        set {_body} to mini message from "  <##E2E2E2>%player%<##888888>: <reset>%{_msg}%"
+        broadcast {_body}
+        
+        # Interactive Footer (Click to MSG)
+        set {_footer} to mini message from "  <##777777>» <click:suggest_command:'/msg %player% '><hover:show_text:'<##FFD700>Click to message %player%'><##00FF00><bold>[CONTACT SENDER]</bold></hover></click>"
+        broadcast {_footer}
+        
+        broadcast "{@line}"
+        broadcast " "
+        
+        # Sound Alert
+        play sound "entity.experience_orb.pickup" with volume 0.5 and pitch 1 to all players
+
+# Tab Completion for easier usage
+on tab complete of "/broadcast":
+    set tab completions for position 1 to "[BUYING]", "[SELLING]", "[TRADING]", "[RECRUITING]"

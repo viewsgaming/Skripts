@@ -1,0 +1,150 @@
+on tab complete of "/nightvision":
+    set tab completions to "on" and "off"
+
+on tab complete of "/fly":
+    if tab arg 2 is not set:
+        set tab completions to all players and "-s"
+    else:
+        set tab completions to "-s"
+
+command /ping:
+    trigger:
+        set {_ping} to player's ping
+        send "&6| <#FFFFFF>Your Ping: <#FFFFB2>%{_ping}% ms" to player
+
+command /nightvision <text>:
+    usage: &f/nightvision &7<on/off>
+    trigger:
+        if arg-1 is "on":
+            apply night vision 1 to player for 25 minutes
+            send title "&eNight Vision" with subtitle "&aEnabled" to player for 3 seconds
+            send "&6| &eNight Vision &fhas &aenabled" to player
+        
+        if arg-1 is "off":
+            remove night vision from player
+            send title "&eNight Vision" with subtitle "&cDisabled" to player for 3 seconds
+            send "&6| &eNight Vision &fhas &cdisabled" to player
+
+command /fly [<offlineplayer>] [<text>]:
+    permission: server.fly.admin
+    permission message: &cYou don't have permission to do that.
+    trigger:
+        set {_target} to arg-1
+        if {_target} is not set:
+            set {_target} to player
+        
+        set {_silent} to false
+        if arg-2 is "-s":
+            set {_silent} to true
+        
+        if player has permission "server.fly.admin" or "server.fly.%{_target}'s world%":
+            if {_target}'s flight mode is true:
+                set {_target}'s flight mode to false
+                if {_silent} is false:
+                    send "&6| &fFlight &cdisabled &ffor %{_target}% in %{_target}'s world%." to player
+                    send "&6| &fYour flight has been &cdisabled&f." to {_target} if {_target} is not player
+            else:
+                set {_target}'s flight mode to true
+                if {_silent} is false:
+                    send "&6| &fFlight &aenabled &ffor %{_target}% in %{_target}'s world%." to player
+                    send "&6| &fYour flight has been &aenabled&f." to {_target} if {_target} is not player
+        else:
+            send "&cNo fly permission for this world (%{_target}'s world%)!" to player
+on join:
+    wait 2 seconds
+    if player has permission "server.fly.admin" or "server.fly.%player's world%":
+        set player's flight mode to true
+    else:
+        set player's flight mode to false
+
+on world change:
+    wait 1 second
+    if player has permission "server.fly.admin" or "server.fly.%player's world%":
+        set player's flight mode to true
+    else:
+        set player's flight mode to false
+
+command /heal:
+    permission: server.heal
+    permission message: &cYou don't have permission to do that.
+    trigger:
+        if player does not have permission "admin.bypass":
+            set {_waited} to difference between {heal.cooldown::%player's uuid%} and now
+            if {_waited} is less than 5 minutes:
+                set {_remaining} to 5 minutes
+                remove {_waited} from {_remaining}
+                send "&cPlease wait &e%{_remaining}% &cbefore using /heal again!"
+                stop
+        set player's health to 10
+        set player's food level to 10
+        send "&6| &fYou have been &ahealed!"
+        set {heal.cooldown::%player's uuid%} to now
+
+command /feed:
+    permission: server.feed
+    permission message: &cYou don't have permission to do that.
+    trigger:
+        if player does not have permission "admin.bypass":
+            set {_waited} to difference between {feed.cooldown::%player's uuid%} and now
+            if {_waited} is less than 1 minute:
+                set {_remaining} to 1 minute
+                remove {_waited} from {_remaining}
+                send "&cPlease wait &e%{_remaining}% &cbefore using /feed again!"
+                stop
+        set player's food level to 10
+        send "&6| &fYour hunger has been satisfied!"
+        set {feed.cooldown::%player's uuid%} to now
+
+options:
+    prefix: <##00b4db>&bSYSTEM <##888888>›<reset>
+    admin_perm: server.admin.view
+    staff_perm: server.staff.gm
+
+command /gm [<text>] [<player>]:
+    aliases: /gamemode
+    permission: {@staff_perm}
+    trigger:
+        set {_p} to "{@prefix}"
+        
+        if arg-1 is not set:
+            send mini message from "%{_p}% <##FF5555>Usage: /gm <0/1/2/3> [player]"
+            stop
+            
+        set {_target} to player
+        if arg-2 is set:
+            set {_target} to arg-2
+            
+        if arg-1 is "0" or "s" or "survival":
+            set {_mode} to survival
+            set {_name} to "<##00FF00>SURVIVAL"
+        else if arg-1 is "1" or "c" or "creative":
+            set {_mode} to creative
+            set {_name} to "<##FFD700>CREATIVE"
+        else if arg-1 is "2" or "a" or "adventure":
+            set {_mode} to adventure
+            set {_name} to "<##FF8C00>ADVENTURE"
+        else if arg-1 is "3" or "sp" or "spectator":
+            set {_mode} to spectator
+            set {_name} to "<##AAAAAA>SPECTATOR"
+        else:
+            send mini message from "%{_p}% <red>Invalid mode!"
+            stop
+
+        set gamemode of {_target} to {_mode}
+        
+        send mini message from "%{_p}% <white>Your gamemode has been updated to %{_name}%<white>." to {_target}
+        play sound "block.note_block.chime" to {_target}
+        
+        set {_staffmsg} to mini message from "<##888888>[<##00b4db>LOG<##888888>] <##EEEEEE>%player% <white>changed <##00FFFF>%{_target}% <white>to %{_name}%"
+        loop all players:
+            if loop-player has permission "{@admin_perm}":
+                if loop-player is not player: # Khud ko dubara msg na jaye
+                    send {_staffmsg} to loop-player
+
+command /fakegm [<player>]:
+    permission: {@admin_perm}
+    trigger:
+        if arg-1 is set:
+            send mini message from "{@prefix} <white>Your gamemode has been updated to <##FFD700>CREATIVE<white>." to arg-1
+            send mini message from "{@prefix} <green>Fake message sent to %arg-1%!" to player
+

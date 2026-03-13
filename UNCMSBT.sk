@@ -1,0 +1,11 @@
+options:
+    msg: &c&lERROR &8| &fThis command didn't exist!
+    chat_msg: &7[&c&lERROR&7] &e404 &8| &eUnknown Command
+    sound: "block.note_block.pling"
+    pitch: 2.0
+
+on unknown command:
+    set component unknown command message to text component from "{@chat_msg}"
+    send action bar "{@msg}" to player
+    play sound {@sound} with pitch {@pitch} to player
+    stop

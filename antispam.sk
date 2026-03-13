@@ -1,0 +1,17 @@
+options:
+  cooldown: 2 seconds
+  prefix: &6AntiSpam &8»
+
+on chat:
+    if player has permission "server.chat.bypass":
+        stop
+    if {lastChat.%player%} is not set:
+        set {lastChat.%player%} to now
+        stop
+    set {_timeDiff} to difference between now and {lastChat.%player%}    
+    if {_timeDiff} < {@cooldown}:
+        cancel event
+        set {_remaining} to {@cooldown} - {_timeDiff}
+        send "{@prefix}&c Please wait &e%{_remaining}% &cseconds!" to player
+        stop
+    set {lastChat.%player%} to now

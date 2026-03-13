@@ -1,0 +1,148 @@
+on join:
+    if {coins::%uuid of player%} is not set:
+        set {coins::%uuid of player%} to 0
+
+options:
+    prefix: &6Coins &f›
+    admin_perm: currency.coins.admin
+    user_perm: currency.coins
+
+function formatCommas(n: number) :: text:
+    set {_num} to "%{_n}%"
+    set {_result} to ""
+    while length of {_num} > 3:
+        set {_last} to last 3 characters of {_num}
+        set {_result} to "," + {_last} + {_result}
+        set {_num} to first (length of {_num} - 3) characters of {_num}
+    return {_num} + {_result}
+
+function formatShort(n: number) :: text:
+    set {_num} to {_n}
+    set {_abs} to abs({_num})
+    if {_abs} < 1000:
+        return "%{_num}%"
+    else if {_abs} < 1000000:
+        return "%round({_num} / 1000 * 10) / 10%K"
+    else if {_abs} < 1000000000:
+        return "%round({_num} / 1000000 * 10) / 10%M"
+    else if {_abs} < 1000000000000:
+        return "%round({_num} / 1000000000 * 10) / 10%B"
+    else:
+        return "%round({_num} / 1000000000000 * 10) / 10%T"
+
+on tab complete of "coins":
+    set tab completions for position 1 to "bal", "balance", "pay", "give", "take", "set" and "help"
+    if tab arg 1 is "pay", "bal", " balance":
+        set {_players::*} to all players
+        remove player from {_players::*}
+        set tab completions for position 2 to {_players::*}
+    if tab arg 1 is "give" or "take" or "set":
+        if player has permission "{@admin_perm}":
+            set tab completions for position 2 to all players
+
+command /coins [<text>] [<offlineplayer>] [<number>]:
+    aliases: coin
+    trigger:
+        if arg-1 is "bal" or "balance":
+            if arg-2 is set:
+                set {_target} to arg-2
+                set {_b} to {coins::%uuid of {_target}%} ? 0
+                send "{@prefix} &e%arg-2%&f's balance: &6⛂ %formatCommas({_b})%" to sender
+            else:
+                if sender is console:
+                    send "{@prefix} &cConsole doesn't have coins. Use /coins bal <player>." to sender
+                else:
+                    set {_b} to {coins::%uuid of player%} ? 0
+                    send "{@prefix} &fYour balance: &6⛂ %formatCommas({_b})%" to player
+            stop
+        if arg-1 is not set:
+            if sender is console:
+                send "{@prefix} &cConsole doesn't have coins. Use /coins bal <player>." to sender
+            else:
+                set {_b} to {coins::%uuid of player%} ? 0
+                send "{@prefix} &fYour balance: &6⛂ %formatCommas({_b})%" to player
+            stop
+
+        else if arg-1 is "pay":
+            if sender is console:
+                send "{@prefix} &cConsole cannot pay coins!" to sender
+                stop
+            if arg-2 or arg-3 is not set:
+                send "{@prefix} &cUsage: /coins pay <player> <amount>" to player
+                stop
+            if arg-2 is player:
+                send "{@prefix} &cYou cannot pay yourself!" to player
+                stop
+            if arg-3 <= 0:
+                send "{@prefix} &cAmount must be positive!" to player
+                stop
+            
+            set {_bal} to {coins::%uuid of player%} ? 0
+            if {_bal} < arg-3:
+                send "{@prefix} &cInsufficient balance!" to player
+                stop
+
+            remove arg-3 from {coins::%uuid of player%}
+            add arg-3 to {coins::%uuid of arg-2%}
+            send "{@prefix} &fSent &6⛂ %formatCommas(arg-3)% &ato %arg-2%." to player
+            if arg-2 is online:
+                send "{@prefix} &fReceived &6⛂ %formatCommas(arg-3)% &afrom %player%." to arg-2
+            stop
+
+        else if arg-1 is "give", "take" or "set":
+            if sender is not console:
+                if player does not have permission "{@admin_perm}":
+                    send "{@prefix} &cNo permission." to player
+                    stop
+            
+            if arg-2 or arg-3 is not set:
+                send "{@prefix} &cUsage: /coins %arg-1% <player> <amount>" to sender
+                stop
+
+            if arg-1 is "give":
+                add arg-3 to {coins::%uuid of arg-2%}
+                send "{@prefix} &aAdded &6⛂ %arg-3% &ato %arg-2%." to sender
+            
+            else if arg-1 is "take":
+                set {_current} to {coins::%uuid of arg-2%} ? 0
+                set {_amount} to arg-3
+                if {_current} < {_amount}:
+                    set {_amount} to {_current}
+                remove {_amount} from {coins::%uuid of arg-2%}
+                send "{@prefix} &cRemoved &6⛂ %{_amount}% &cfrom %arg-2%." to sender
+            
+            else if arg-1 is "set":
+                set {coins::%uuid of arg-2%} to arg-3
+                send "{@prefix} &eSet %arg-2%&e's balance to &6⛂ %arg-3%." to sender
+            
+            if arg-2 is online:
+                send "{@prefix} &fYour balance was updated by an admin." to arg-2
+            stop
+
+        else:
+            send "&8&m      &6 Coins Help &8&m      " to sender
+            send "&e/coins bal &7- Check your balance" to sender
+            send "&e/coins bal <player> &7- Check someone's balance" to sender
+            send "&e/coins pay <player> <amt> &7- Pay a player" to sender
+            
+            # Show Admin help only to Admins or Console
+            if sender has permission "{@admin_perm}":
+                send "" to sender
+                send "&c&lAdmin Commands:" to sender
+                send "&c/coins give <player> <amt> &7- Add coins" to sender
+                send "&c/coins take <player> <amt> &7- Remove coins" to sender
+                send "&c/coins set <player> <amt> &7- Set balance" to sender
+            
+            send "&8&m                        " to sender
+            stop
+
+placeholderapi placeholder with the prefix "coins":
+    if identifier is "balance":
+        set {_val} to {coins::%uuid of player%} ? 0
+        set the result to "%{_val}%"
+    if identifier is "balance_commas":
+        set {_val} to {coins::%uuid of player%} ? 0
+        set the result to formatCommas({_val})
+    if identifier is "balance_formatted":
+        set {_val} to {coins::%uuid of player%} ? 0
+        set the result to formatShort({_val})

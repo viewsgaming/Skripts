@@ -1,0 +1,137 @@
+options:
+    p: &7[&6ITEM STORE&7] &f
+    err: &7[&c&l!&7] &f
+    coins: {coins::%uuid of player%}
+    storage: {stored_item::item::*}
+
+on tab complete of "/buyitem", "/delitem" and "/edititem":
+    set {_ids::*} to all indices of {@storage}
+    if size of {_ids::*} is 0:
+        stop
+    set tab completions for position 1 to {_ids::*}
+
+command /set-item-price:
+    permission: admin.items
+    trigger:
+        if player's tool is air:
+            send "{@err} Please hold an item in your hand!" to player
+            stop
+        
+        set {temp::editing::%player%} to player's tool
+        set {temp::price::%player%} to 100
+        set {temp::amount::%player%} to 1
+        set {temp::custom_id::%player%} to "%{item_engine::id_counter} + 1%"
+        openMainSetup(player)
+
+function openMainSetup(p: player):
+    set {_name} to name of {temp::editing::%{_p}%}
+    if {_name} is not set:
+        set {_name} to type of {temp::editing::%{_p}%}
+        
+    set {_gui} to a new chest inventory with 3 rows named "&0Setup: %{_name}%"
+    set slot 10 of {_gui} to 1 of name tag with name "&e&lSet Unique ID" with lore "&7Current ID: &f%{temp::custom_id::%{_p}%}%", "", "&7Click to change via chat"
+    set slot 12 of {_gui} to 1 of sunflower with name "&6&lSet Price" with lore "&7Current Price: &f%{temp::price::%{_p}%}% Coins", "", "&7Click to change via chat"
+    set slot 14 of {_gui} to 1 of chest with name "&b&lSet Amount" with lore "&7Current Amount: &f%{temp::amount::%{_p}%}%", "", "&7Click to change via chat"
+    set slot 16 of {_gui} to 1 of emerald block with name "&a&lGO TO PREVIEW" with lore "&7Review all NBT details before saving"
+    open {_gui} to {_p}
+function openPreview(p: player):
+    set {_gui} to a new chest inventory with 3 rows named "&0Review & Confirm Save"
+    set {_i} to {temp::editing::%{_p}%}
+    set slot 13 of {_gui} to {_i}
+    set slot 11 of {_gui} to 1 of paper with name "&e&lFinal Details" with lore "&7Target ID: &f%{temp::custom_id::%{_p}%}%", "&7Price: &f%{temp::price::%{_p}%}%", "&7Amount: &f%{temp::amount::%{_p}%}%"
+    set slot 21 of {_gui} to 1 of red wool with name "&c&lBACK TO SETUP"
+    set slot 23 of {_gui} to 1 of lime wool with name "&a&lCONFIRM & SAVE"
+    open {_gui} to {_p}
+on inventory click:
+    if name of event-inventory contains "Setup:":
+        cancel event
+        set {_p} to player        
+        if index of event-slot is 10:
+            set metadata tag "item_input" of {_p} to "ID"
+            close {_p}
+            send "{@p} Type the &eUnique ID &fin chat:" to {_p}
+            
+        else if index of event-slot is 12:
+            set metadata tag "item_input" of {_p} to "PRICE"
+            close {_p}
+            send "{@p} Type the &6Coin Price &fin chat:" to {_p}
+            
+        else if index of event-slot is 14:
+            set metadata tag "item_input" of {_p} to "AMOUNT"
+            close {_p}
+            send "{@p} Type the &bItem Amount &fto give in chat:" to {_p}
+            
+        else if index of event-slot is 16:
+            openPreview({_p})
+
+    if name of event-inventory is "&0Review & Confirm Save":
+        cancel event
+        if index of event-slot is 21:
+            openMainSetup(player)
+        else if index of event-slot is 23:
+            set {_id} to {temp::custom_id::%player%}
+            set {stored_item::item::%{_id}%} to {temp::editing::%player%}
+            set {stored_item::price::%{_id}%} to {temp::price::%player%}
+            set {stored_item::amount::%{_id}%} to {temp::amount::%player%}
+            add 1 to {item_engine::id_counter}
+            send "{@p} Successfully registered &a%{_id}%" to player
+            close player's inventory
+on chat:
+    if metadata tag "item_input" of player is set:
+        cancel event
+        set {_mode} to metadata tag "item_input" of player
+        
+        if {_mode} is "ID":
+            set {temp::custom_id::%player%} to message
+        else if {_mode} is "PRICE":
+            set {temp::price::%player%} to message parsed as number
+        else if {_mode} is "AMOUNT":
+            set {temp::amount::%player%} to message parsed as number
+            
+        delete metadata tag "item_input" of player
+        send "{@p} Value Updated! Re-opening GUI..." to player
+        openMainSetup(player)
+
+# --- [ PLAYER COMMANDS ] ---
+command /buyitem [<text>]:
+    permission: item.buy
+    trigger:
+        if {stored_item::item::%arg-1%} is not set:
+            send "{@err} This ID does not exist!" to player
+            stop
+            
+        set {_pr} to {stored_item::price::%arg-1%}
+        set {_am} to {stored_item::amount::%arg-1%}
+        set {_it} to {stored_item::item::%arg-1%}
+        
+        if {@coins} >= {_pr}:
+            remove {_pr} from {@coins}
+            give {_am} of {_it} to player
+            
+            # Format the item name for the message
+            set {_display} to name of {_it}
+            if {_display} is not set:
+                set {_display} to "%{_it}%"
+            
+            # Your requested Success Message Format
+            send "{@p} You have successfully bought &a%{_display}% &fwith &6%{_pr}% coins" to player
+            
+            play sound "entity.experience_orb.pickup" to player
+        else:
+            send "{@err} You need &6%{_pr}% coins &7to buy this!" to player
+
+# --- [ ADMIN UTILITIES ] ---
+command /delitem [<text>]:
+    permission: admin.items
+    trigger:
+        delete {stored_item::item::%arg-1%}
+        delete {stored_item::price::%arg-1%}
+        delete {stored_item::amount::%arg-1%}
+        send "{@p} &cDeleted item ID: %arg-1%" to player
+
+command /itemlist:
+    permission: admin.items
+    trigger:
+        send "&b&lITEMS DATABASE" to player
+        loop {stored_item::item::*}:
+            send "&7ID: &f%loop-index% &8| &b%type of loop-value% &8| &ePrice: %{stored_item::price::%loop-index%}%" to player

@@ -1,0 +1,110 @@
+options:
+    p: &8[&b&lTPA&8]&r
+    line: &8&m                                                &r
+
+# --- Tab Completion ---
+on tab complete of "/tpa" or "/tpahere" or "/tpaccept" or "/tpdeny" or "/tpacancel":
+    set tab completions for position 1 to all players
+
+# --- Request Commands ---
+command /tpa [<player>]:
+    trigger:
+        if arg-1 is not set:
+            send "{@line}"
+            send "  {@p} &e&lCOMMANDS"
+            send "  &7• &f/tpa <player>"
+            send "  &7• &f/tpahere <player>"
+            send "  &7• &f/tpaccept | /tpdeny"
+            send "{@line}"
+            stop
+            
+        set {_t} to arg-1
+        if {_t} is player:
+            send "{@p} &cYou can't TPA to yourself!"
+            stop
+
+        set {tpa.req::%uuid of {_t}%::%uuid of player%} to "TPA"
+        
+        # Sender Feedback (Clean)
+        send "{@line}"
+        send "  {@p} &fRequest sent to &b&l%{_t}%"
+        send mini message from "  &c&l<click:run_command:/tpacancel %{_t}%>[CANCEL REQUEST]<reset>"
+        send "{@line}"
+        
+        # Receiver Feedback
+        send "{@line}" to {_t}
+        send "  {@p} &b&l%player% &fwants to teleport to &lYOU." to {_t}
+        send mini message from "  &a&l<click:run_command:/tpaccept %player%>[ACCEPT]<reset>   &c&l<click:run_command:/tpdeny %player%>[DENY]<reset>" to {_t}
+        send "{@line}" to {_t}
+        play sound "block.note_block.pling" to {_t}
+
+command /tpahere [<player>]:
+    trigger:
+        set {_t} to arg-1
+        if {_t} is set:
+            set {tpa.req::%uuid of {_t}%::%uuid of player%} to "TPAHERE"
+            send "{@line}"
+            send "  {@p} &fTPA-Here sent to &b&l%{_t}%"
+            send mini message from "  &c&l<click:run_command:/tpacancel %{_t}%>[CANCEL REQUEST]<reset>"
+            send "{@line}"
+            
+            send "{@line}" to {_t}
+            send "  {@p} &b&l%player% &fwants &lYOU &fto teleport to &lTHEM." to {_t}
+            send mini message from "  &a&l<click:run_command:/tpaccept %player%>[ACCEPT]<reset>   &c&l<click:run_command:/tpdeny %player%>[DENY]<reset>" to {_t}
+            send "{@line}" to {_t}
+
+# --- Action Commands ---
+command /tpaccept [<player>]:
+    trigger:
+        set {_r} to arg-1
+        set {_type} to {tpa.req::%uuid of player%::%uuid of {_r}%}
+        if {_type} is set:
+            delete {tpa.req::%uuid of player%::%uuid of {_r}%}
+            if {_type} is "TPA":
+                tpaMove({_r}, player)
+            else:
+                tpaMove(player, {_r})
+        else:
+            send "{@p} &cNo request found."
+
+command /tpacancel [<player>]:
+    trigger:
+        delete {tpa.req::%uuid of arg-1%::%uuid of player%}
+        send "{@p} &cRequest cancelled."
+
+command /tpdeny [<player>]:
+    trigger:
+        delete {tpa.req::%uuid of player%::%uuid of arg-1%}
+        send "{@p} &cRequest denied."
+
+# --- Teleport Function (Fixed) ---
+function tpaMove(p: player, t: player):
+    set {_loc} to location of {_p}
+    set {_wait} to {tpa.config.wait} ? 3
+    loop {_wait} times:
+        set {_rem} to {_wait} - loop-number + 1
+        send action bar "&bTeleporting in &d&l%{_rem}%s" to {_p}
+        play sound "block.note_block.bit" to {_p}
+        wait 1 second
+        if distance between {_loc} and {_p} > 0.5:
+            send "&cCancelled! You moved." to {_p}
+            stop
+    teleport {_p} to {_t}
+    play sound "entity.enderman.teleport" to {_p}
+
+# --- Admin (Clean logic) ---
+command /tpaadmin [<text>] [<number>]:
+    permission: tpa.admin
+    trigger:
+        if arg-1 is "wait":
+            if arg-2 is not set:
+                send "time?" to player
+                stop
+            set {tpa.config.wait} to arg-2
+            send "{@p} &aWait set to %arg-2%s"
+        else if arg-1 is "expire":
+            if arg-2 is not set:
+                send "time? " to player
+                stop
+            set {tpa.config.expire} to arg-2
+            send "{@p} &aExpire set to %arg-2%s"

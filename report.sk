@@ -1,0 +1,104 @@
+on load:
+    if {logs::report_load_done} is not set:
+        set {logs::report_load_done} to true
+        set {_m} to mini message from "<gradient:#ff4b2b:#ff416c><bold>REPORT SYSTEM</bold></gradient> <gray>› <white>Advanced Logic Loaded!"
+        broadcast " "
+        send {_m} to all players
+        broadcast " "
+
+command /report [<text>] [<text>] [<text>]:
+    trigger:
+        set {_p} to mini message from "<gradient:#ff4b2b:#ff416c><bold>REPORT</bold></gradient> <dark_gray>›<reset> "
+        
+        if arg-1 is not "delete" or "view" or "mark" or "list":
+            if arg-1 is not set:
+                send mini message from "%{_p}%<yellow>Usage: /report <player> <reason>"
+                stop
+            set {_t} to arg-1 parsed as player
+            if {_t} is not set:
+                send mini message from "%{_p}%<red>Player not found!"
+                stop
+            if {_t} is player:
+                send mini message from "%{_p}%<red>You cannot report yourself!"
+                stop
+            if arg-2 is not set:
+                send mini message from "%{_p}%<red>Please explain what happened (reason)."
+                stop
+            
+            add 1 to {reports::counter}
+            set {_id} to {reports::counter}
+            set {report::%{_id}%::player} to {_t}
+            set {report::%{_id}%::sender} to player
+            set {report::%{_id}%::reason} to arg-2
+            set {report::%{_id}%::time} to now
+            set {report::%{_id}%::status} to "<yellow>PENDING"
+            
+            send mini message from "%{_p}%<green>Report <white>##%{_id}% <green>submitted against <white>%{_t}%<green>."
+            
+            set {_alert} to mini message from "<red><bold>NEW REPORT! <gray>[##%{_id}%] <white>%player% -> %{_t}% <click:run_command:'/report view %{_id}%'><hover:show_text:'<aqua>Click to View Details'><gold>[VIEW]</hover></click>"
+            loop all players:
+                if loop-player has permission "report.admin":
+                    send {_alert} to loop-player
+            stop
+
+        if arg-1 is "view":
+            if arg-2 is not set:
+                send mini message from ""
+                stop
+            if player has permission "report.admin":
+                set {_id} to arg-2
+                if {report::%{_id}%::player} is not set:
+                    send mini message from "%{_p}%<red>Report ID not found."
+                    stop
+                send " "
+                send mini message from "<gradient:#ff4b2b:#ff416c><bold>REPORT DETAILS ##%{_id}%</bold></gradient>"
+                send mini message from "<gray>Target: <white>%{report::%{_id}%::player}%"
+                send mini message from "<gray>By: <white>%{report::%{_id}%::sender}%"
+                send mini message from "<gray>Reason: <white>%{report::%{_id}%::reason}%"
+                send mini message from "<gray>Status: %{report::%{_id}%::status}%"
+                send mini message from "<gray>Time: <white>%{report::%{_id}%::time}%"
+                send formatted "<tooltip:&cDelete this report><run command:/report delete %{_id}%>&c&l[DELETE]<reset>  <tooltip:&aMark as Solved><run command:/report mark %{_id}% solved>&a&l[SOLVE]"
+                send " "
+            stop
+
+        if arg-1 is "delete":
+            if player has permission "report.admin":
+                if arg-2 is not set:
+                    send mini message from "%{_p}%<yellow>/report delete <id>"
+                    stop
+                delete {report::%arg-2%::player}
+                delete {report::%arg-2%::sender}
+                delete {report::%arg-2%::reason}
+                send mini message from "%{_p}%<red>Report ##%arg-2% has been deleted."
+            stop
+
+        if arg-1 is "mark":
+            if player has permission "report.admin":
+                if arg-3 is not set:
+                    send mini message from "%{_p}%<yellow>/report mark <id> <solved/investigating>"
+                    stop
+                set {report::%arg-2%::status} to "<green>%arg-3%"
+                send mini message from "%{_p}%<green>Report ##%arg-2% status updated to <white>%arg-3%<green>."
+            stop
+
+command /reports:
+    permission: report.admin
+    trigger:
+        set {_p} to mini message from "<gradient:#ff4b2b:#ff416c><bold>REPORTS</bold></gradient> <dark_gray>›<reset> "
+        send " "
+        send mini message from "<gradient:#ff4b2b:#ff416c><bold>PENDING REPORTS LIST</bold></gradient>"
+        set {_found} to false
+        loop {reports::counter} times:
+            set {_id} to loop-value
+            if {report::%{_id}%::player} is set:
+                set {_found} to true
+                send mini message from "<gray>##%{_id}% | <white>%{report::%{_id}%::player}% <gray>| By: <white>%{report::%{_id}%::sender}% <click:run_command:'/report view %{_id}%'><hover:show_text:'<aqua>View Report'><gold>[VIEW]</hover></click>"
+        if {_found} is false:
+            send "<italic>No pending reports found."
+        send " "
+
+on tab complete of "report":
+    if player has permission "report.admin":
+        set tab completions for position 1 to "view", "delete", "mark", "list" and all players
+    else:
+        set tab completions for position 1 to all players

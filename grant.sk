@@ -1,0 +1,167 @@
+# ==========================================
+#    FIXED ADVANCED GRANT SYSTEM
+# ==========================================
+
+options:
+    prefix: &6Grant &8»
+    store_link: https://yourstore.link
+
+# --- PRO TAB COMPLETION ---
+on tab complete of "/grant":
+    if player has permission "grant.use":
+        if tab arg 1 is not set:
+            set tab completions for position 1 to "help", "info", "gift" and all players
+            if player has permission "grant.admin":
+                add "give" and "take" to tab completions for position 1
+        
+        # Admin Actions
+        else if tab arg 1 is "give" or "take":
+            if player has permission "grant.admin":
+                if tab arg 2 is set:
+                    set tab completions for position 2 to all players
+                if tab arg 3 is set:
+                    # Yahan aap apne fixed ranks likh sakte ho suggestions ke liye
+                    set tab completions for position 3 to {_ranks}
+        
+        # Gift Action
+        else if tab arg 1 is "gift":
+            if tab arg 2 is set:
+                set tab completions for position 2 to all players
+            if tab arg 3 is set:
+                loop {grant.user::%player%::*}:
+                    if loop-value > 0:
+                        add loop-index to {_myranks::*}
+                set tab completions for position 3 to {_myranks::*}
+
+        # Default Grant Use ( /grant <player> <rank> )
+        else if tab arg 1 is not "help", "info", "give", "take" or "gift":
+            if tab arg 2 is set:
+                loop {grant.user::%player%::*}:
+                    if {grant.user::%player%::%loop-index%} > 0:
+                        add loop-index to {_myranks::*}
+                set tab completions for position 2 to {_myranks::*}
+
+command /grant [<text>] [<text>] [<text>] [<text>]:
+    permission: grant.use
+    trigger:
+        # HELP MENU
+        if arg-1 is not set:
+            send "&7&m------------------------"
+            send "&e&lGrant Help"
+            send "&e/grant <player> <rank> &7- Use a grant"
+            send "&e/grant info &7- Check your grants"
+            send "&e/grant gift <player> <rank> [amount]"
+            if player has permission "grant.admin":
+                send "&c/grant give <player> <rank> [amount]"
+                send "&c/grant take <player> <rank> [amount]"
+            send "&7&m------------------------"
+            stop
+        if arg-1 is "help":
+            execute player command "/grant"
+
+        # INFO SYSTEM
+        if arg-1 is "info":
+            send "&7&m------------------------"
+            send "&eYour Available Grants:"
+            set {_found} to false
+            loop {grant.user::%player%::*}:
+                if loop-value > 0:
+                    send "&f- &b%loop-index% &7x%loop-value%"
+                    set {_found} to true
+            if {_found} is false:
+                send "&cYou don't have any grants."
+            send "&7&m------------------------"
+            stop
+
+        # GIVE SYSTEM (ADMIN)
+        if arg-1 is "give":
+            if player has permission "grant.admin":
+                if arg-2 or arg-3 is not set:
+                    send "{@prefix} &cUsage: /grant give <player> <rank> [amount]"
+                    stop
+                set {_target} to arg-2 parsed as player
+                set {_rank} to arg-3
+                set {_amount} to arg-4 parsed as integer ? 1
+                if {_target} is not set:
+                    send "{@prefix} &cPlayer not found."
+                    stop
+                
+                # Global list check to prevent duplicates
+                set {_exists} to false
+                loop {grant.available::*}:
+                    if loop-value is {_rank}:
+                        set {_exists} to true
+                add {_rank} to {grant.available::*} if {_exists} is false
+
+                add {_amount} to {grant.user::%{_target}%::%{_rank}%}
+                send "{@prefix} &aAdded %{_amount}%x %{_rank}% grant to %{_target}%."
+            else:
+                send "{@prefix} &cNo permission."
+            stop
+
+        # TAKE SYSTEM (ADMIN)
+        if arg-1 is "take":
+            if player has permission "grant.admin":
+                if arg-2 or arg-3 is not set:
+                    send "{@prefix} &cUsage: /grant take <player> <rank> [amount]"
+                    stop
+                set {_target} to arg-2 parsed as player
+                set {_rank} to arg-3
+                set {_amount} to arg-4 parsed as integer ? 1
+                
+                if ({grant.user::%{_target}%::%{_rank}%} ? 0) <= 0:
+                    send "Player has no grants!"
+
+
+                    send "{@prefix} &c%{_target}% has no %{_rank}% grants."
+                    stop
+                
+                if {grant.user::%{_target}%::%{_rank}%} < {_amount}:
+                    set {_amount} to {grant.user::%{_target}%::%{_rank}%}
+
+                remove {_amount} from {grant.user::%{_target}%::%{_rank}%}
+                send "{@prefix} &cRemoved %{_amount}%x %{_rank}% from %{_target}%."
+            else:
+                send "{@prefix} &cNo permission."
+            stop
+
+        # GIFT SYSTEM
+        if arg-1 is "gift":
+            if arg-2 or arg-3 is not set:
+                send "{@prefix} &cUsage: /grant gift <player> <rank> [amount]"
+                stop
+            set {_target} to arg-2 parsed as player
+            set {_rank} to arg-3
+            set {_amount} to arg-4 parsed as integer ? 1
+
+            if {grant.user::%player%::%{_rank}%} < {_amount}:
+                send "{@prefix} &cInsufficient grants."
+                stop
+
+            remove {_amount} from {grant.user::%player%::%{_rank}%}
+            add {_amount} to {grant.user::%{_target}%::%{_rank}%}
+            send "{@prefix} &aGifted %{_amount}% %{_rank}% to %{_target}%."
+            send "{@prefix} &aYou received %{_amount}% %{_rank}% grant(s) from %player%." to {_target}
+            stop
+
+        # USE GRANT SYSTEM
+        else:
+            set {_target} to arg-1 parsed as player
+            set {_rank} to arg-2
+            if {_target} or {_rank} is not set:
+                send "{@prefix} &cInvalid command. Use /grant help."
+                stop
+            
+            if {grant.user::%player%::%{_rank}%} > 0:
+                remove 1 from {grant.user::%player%::%{_rank}%}
+                execute console command "lp user %{_target}% parent set %{_rank}%"
+                broadcast "&7"
+                broadcast "&a▄&e▀&b▄&d▀&6▄&c▀&a▄&e▀&b▄&d▀&6▄&c▀&a▄&e▀&b▄&d▀&6▄&c▀&a▄&e▀&b▄&d▀&6▄&c▀&a▄&e▀&b▄"
+                broadcast "&7"
+                broadcast " &e%{_target}% &fhas been granted to &b%{_rank}% &fby &a%player%!"
+                broadcast " &eStore: &b&n{@store_link}"
+                broadcast "&7"
+                broadcast "&a▄&e▀&b▄&d▀&6▄&c▀&a▄&e▀&b▄&d▀&6▄&c▀&a▄&e▀&b▄&d▀&6▄&c▀&a▄&e▀&b▄&d▀&6▄&c▀&a▄&e▀&b▄"
+            else:
+                send "{@prefix} &cYou don't have any %{_rank}% grants."
+            stop
