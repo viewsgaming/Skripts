@@ -1,0 +1,22 @@
+import:
+    java.time.ZoneId
+    java.time.ZonedDateTime
+    java.time.format.DateTimeFormatter
+
+placeholderapi placeholder with the prefix "time":
+    if identifier starts with "zone_":
+        set {_data::*} to identifier split at "_"
+
+        set {_zoneName} to {_data::2}
+        set {_type} to {_data::3}
+
+        set {_zone} to ZoneId.of({_zoneName})
+        set {_now} to ZonedDateTime.now({_zone})
+
+        if {_type} is "time":
+            set {_format} to DateTimeFormatter.ofPattern("HH:mm:ss")
+            set the result to {_now}.format({_format})
+
+        else if {_type} is "date":
+            set {_format} to DateTimeFormatter.ofPattern("dd-MM-yyyy")
+            set the result to {_now}.format({_format})

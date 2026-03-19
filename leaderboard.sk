@@ -1,0 +1,159 @@
+Options:
+    title: &0Statistics & Leaderboards
+    line: &8&m                                      &r
+
+function getLB(p: player, board: text, rank: number, time: text, type: text) :: text:
+    if {_type} is "name":
+        set {_id} to "ajlb_lb_%{_board}%_%{_rank}%_%{_time}%_name"
+    else:
+        set {_id} to "ajlb_lb_%{_board}%_%{_rank}%_%{_time}%_value"
+
+    set {_val} to placeholder "%{_id}%" from {_p}
+
+    if {_val} is not set:
+        return "&8---"
+
+    if {_val} contains "BDNE" or "None" or "<none>" or "Loading":
+        return "&7Loading.."
+
+    return {_val}
+
+function stat(p: player, id: text) :: text:
+    set {_v} to placeholder "%{_id}%" from {_p}
+    if {_v} is not set:
+        return "&7---"
+    return {_v}
+
+function makeBoard(p: player, gui: inventory, board: text, name: text, slot: number, icon: item):
+    if {_board} is "playerpoints_points_formatted" or "vault_eco_balance_commas":
+        set {_time} to "alltime"
+    else:
+        if {LB::time::%{_p}%::%{_board}%} is not set:
+            set {LB::time::%{_p}%::%{_board}%} to "alltime"
+        set {_time} to {LB::time::%{_p}%::%{_board}%}
+
+    set {_lore::*} to "&c&l%{_name}% Leaderboard"
+    add "&7Time: &e%{_time}%" to {_lore::*}
+    add "" to {_lore::*}
+
+    loop 10 times:
+        set {_rank} to loop-number
+        set {_player} to getLB({_p}, {_board}, {_rank}, {_time}, "name")
+        set {_value} to getLB({_p}, {_board}, {_rank}, {_time}, "value")
+        add "&a#%{_rank}% &e%{_player}% &7- &a%{_value}%" to {_lore::*}
+
+    add "" to {_lore::*}
+    if {_board} is not "playerpoints_points_formatted" or "vault_eco_balance_commas":
+        add "&e&nCLICK TO CHANGE TIME" to {_lore::*}
+    else:
+        add "&7(Fixed: All-Time)" to {_lore::*}
+
+    set slot {_slot} of {_gui} to {_icon} named "&aTop %{_name}%" with lore {_lore::*}
+
+function openStats(p: player):
+    set {_gui} to chest inventory with 3 rows named "{@title}"
+    set slot (all integers between 0 and 26) of {_gui} to black stained glass pane named " "
+    
+    set {_head} to skull of {_p}
+    set {_kills} to stat({_p}, "statistic_player_kills")
+    set {_deaths} to stat({_p}, "statistic_deaths")
+    set {_coins} to stat({_p}, "playerpoints_points_formatted")
+    set {_money} to stat({_p}, "vault_eco_balance_commas")
+    set {_playtime} to stat({_p}, "statistic_time_played")
+    
+    set {_lore::*} to "&7Your Statistics:"
+    add "&8Statistics" to {_lore::*}
+    add "" to {_lore::*}
+    add "&cKills: &f%{_kills}%" to {_lore::*}
+    add "&4Deaths: &f%{_deaths}%" to {_lore::*}
+    add "&eCoins: &f%{_coins}%" to {_lore::*}
+    add "&aMoney: &f%{_money}%" to {_lore::*}
+    add "&bPlaytime: &f%{_playtime}%" to {_lore::*}
+    add " " to {_lore::*}
+    add "&7/discord" to {_lore::*}
+    set slot 10 of {_gui} to {_head} named "&e%{_p}%'s Profile" with lore {_lore::*}
+    
+    makeBoard({_p}, {_gui}, "statistic_player_kills", "Kills", 12, iron sword)
+    makeBoard({_p}, {_gui}, "statistic_deaths", "Deaths", 13, skeleton skull)
+    
+    set {_head_playtime} to skull of ("Johnsquawk" parsed as offline player)
+    makeBoard({_p}, {_gui}, "statistic_time_played", "Playtime", 14, {_head_playtime})
+    
+    set {_head_money} to skull of ("MrSnowDK" parsed as offline player)
+    makeBoard({_p}, {_gui}, "vault_eco_balance_commas", "Money", 15, {_head_money})
+    
+    set {_coins_texture} to "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNDFiNWZkZWZmZmZmYTcwODM4MWU3MGYzNTAzYTI3NTc3MmI0NTI5NmNmOWYxNjI1YTg3ZWRjNmI2MjU0OWVmNiJ9fX0="
+    set {_coinsHead} to skull from value {_coins_texture}
+    makeBoard({_p}, {_gui}, "playerpoints_points_formatted", "Coins", 16, {_coinsHead})
+    
+    set {_exit_texture} to "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvY2ZmZDA2OWE3YTBlYjhlMTQ5YWU3NjM1M2M1MGZjNjM4MzI5ZDI2NjI2MDgyNGFiMTFjMTY4MzEzZjViMGI4In19fQ=="
+    set {_exitHead} to skull from value {_exit_texture}
+    set slot 26 of {_gui} to {_exitHead} named "&c&nClose Menu"
+    
+    open {_gui} to {_p}
+
+on inventory click:
+    if name of event-inventory is "{@title}":
+        cancel event
+        set {_slot} to index of event-slot
+        
+        if {_slot} is 26:
+            close player's inventory
+            stop
+            
+        if {_slot} is 12:
+            set {_board} to "statistic_player_kills"
+        else if {_slot} is 13:
+            set {_board} to "statistic_deaths"
+        else if {_slot} is 14:
+            set {_board} to "statistic_time_played"
+        else:
+            stop
+        if {LB::time::%player%::%{_board}%} is "alltime":
+            set {LB::time::%player%::%{_board}%} to "weekly"
+        else if {LB::time::%player%::%{_board}%} is "weekly":
+            set {LB::time::%player%::%{_board}%} to "daily"
+        else:
+            set {LB::time::%player%::%{_board}%} to "alltime"
+        
+        openStats(player)
+
+command /lb [<text>]:
+    aliases: /leaderboard:
+    trigger:
+
+        if arg-1 is not set:
+            openStats(player)
+            stop
+
+        if arg-1 is "coins" or "coin":
+            set {_board} to "playerpoints_points_formatted"
+
+        else if arg-1 is "money" or "balance" or "vault":
+            set {_board} to "vault_eco_balance_commas"
+
+        else if arg-1 is "kills" or "kill":
+            set {_board} to "statistic_player_kills"
+
+        else if arg-1 is "death" or "deaths":
+            set {_board} to "statistic_deaths"
+
+        else if arg-1 is "playtime" or "time":
+            set {_board} to "statistic_time_played"
+
+        else:
+            send "&cUnknown leaderboard."
+            send "&7"
+            send "&favailable: &abalance&f, &akills&f, &adeath&f, &acoins&f, &aplaytime"
+            stop
+
+        send "{@line}"
+        send "&aTop %arg-1% Leaderboard"
+        send "{@line}"
+        loop 10 times:
+            set {_rank} to loop-number
+            set {_name} to getLB(player, {_board}, {_rank}, "alltime", "name")
+            set {_value} to getLB(player, {_board}, {_rank}, "alltime", "value")
+            send "&e#%{_rank}% &f%{_name}% &8» &a%{_value}%"
+
+        send "{@line}"

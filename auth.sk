@@ -24,7 +24,7 @@ on tab complete of "/auth":
         set tab completions for position 2 to all players
 
 on tab complete of "/register" or "/reg":
-    set tab completions for position 1 to "<Password>"
+    set tab completions for position 1 to "<Password>":
     set tab completions for position 2 to "<Confirm-Password>"
 
 on tab complete of "/login" or "/l" or "/log":
@@ -136,10 +136,12 @@ on join:
             stop
 
 on quit:
-    set quit message to ""
-    set {auth::last-ip::%player's uuid%} to IP of player
-    set {auth::session-expiry::%player's uuid%} to now
-    add {@session-time} to {auth::session-expiry::%player's uuid%}
+    set quit message to "" 
+    if {auth::logged-in::%player's uuid%} is true:
+        set {auth::last-ip::%player's uuid%} to IP of player
+        set {auth::session-expiry::%player's uuid%} to now
+        add {@session-time} to {auth::session-expiry::%player's uuid%}
+        stop
     set {auth::logged-in::%player's uuid%} to false
     delete boss bar with id "auth.%player's uuid%"
 
@@ -166,7 +168,7 @@ command /register [<text>] [<text>]:
         set {auth::registered::%player's uuid%} to true
         loginPlayer(player)
 
-command /login [<text>]:
+command /login [<text>]
     aliases: /l, /log
     trigger:
         if {auth::logged-in::%player's uuid%} is true:
